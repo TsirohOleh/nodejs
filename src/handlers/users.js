@@ -1,47 +1,79 @@
-let users = require('../db/users.json');
+const router = require('express').Router();
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-const port = 3000;
+const {
+  getUsers,
+  createUser,
+  getUser,
+  editUser,
+  deleteUser
+} = require('../helpers/users-helper');
 
-app.use(express.json());
-app.use(express.urlencoded());
-
-app.get('/users', (req, res) => {
-  res.send(users);
+router.get('/', (req, res, next) => {
+  try {
+    res
+    .status(200)
+    .send(getUsers());
+  }
+  catch(err) {
+    next(err);
+  }
 });
 
-app.get('/users/:id', (req, res) => {
-  const user = users.find(user => user.id.toString() === req.params.id);
+router.post('/', (req, res) => {
+  const data = req.body;
 
-  res.send(user);
+  createUser(data)
+    .then(data => {
+      res
+        .status(201)
+        .send('DONE');
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
-app.post('/users', (req, res) => {
-  const newUser = {...req.body};
-
-  newUser.id = users.slice(-1)[0].id + 1;
-  users.push(newUser);
-  res.send(users);
+router.get('/:id', (req, res, next) => {
+  const id = req.params.id;
+  
+  try {
+    res
+      .status(200)
+      .send(getUser(id));
+  }
+  catch(err) {
+    next(err);
+  }
 });
 
-app.put('/users', (req, res) => {
-  const changedUser = {...req.body};
-  const userId = changedUser.id;
+router.put('/:id', (req, res, next) => {
+  const id = req.params.id;
+  const data = req.body;
 
-  users = users.map(user => {
-    return user.id.toString() === changedUser.id ? changedUser : user;
-  });
-
-  res.send(users);
+  editUser(id, data)
+    .then(data => {
+      res
+        .status(200)
+        .send('DONE');
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
-app.delete('/users', (req, res) => {
-  const userId = req.body.id;
-  const modiffiedUsers = users.filter(user => user.id.toString() !== userId);
+router.delete('/:id', (req, res) => {
+  const id = req.params.id;
 
-  res.send(modiffiedUsers);
+  deleteUser(id)
+    .then(data => {
+      console.log(data);
+      res
+        .status(200)
+        .send('DONE');
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+module.exports = router;
