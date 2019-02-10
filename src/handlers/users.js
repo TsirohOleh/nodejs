@@ -1,11 +1,79 @@
-const users = require('../db/users.json');
+const router = require('express').Router();
 
-const express = require('express');
-const app = express();
-const port = 3000;
+const {
+  getUsers,
+  createUser,
+  getUser,
+  editUser,
+  deleteUser
+} = require('../helpers/users-helper');
 
-app.get('/users', (req, res) => {
-  res.send(users);
+router.get('/', (req, res, next) => {
+  try {
+    res
+    .status(200)
+    .send(getUsers());
+  }
+  catch(err) {
+    next(err);
+  }
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+router.post('/', (req, res) => {
+  const data = req.body;
+
+  createUser(data)
+    .then(data => {
+      res
+        .status(201)
+        .send('DONE');
+    })
+    .catch(err => {
+      next(err);
+    });
+});
+
+router.get('/:id', (req, res, next) => {
+  const id = req.params.id;
+  
+  try {
+    res
+      .status(200)
+      .send(getUser(id));
+  }
+  catch(err) {
+    next(err);
+  }
+});
+
+router.put('/:id', (req, res, next) => {
+  const id = req.params.id;
+  const data = req.body;
+
+  editUser(id, data)
+    .then(data => {
+      res
+        .status(200)
+        .send('DONE');
+    })
+    .catch(err => {
+      next(err);
+    });
+});
+
+router.delete('/:id', (req, res) => {
+  const id = req.params.id;
+
+  deleteUser(id)
+    .then(data => {
+      console.log(data);
+      res
+        .status(200)
+        .send('DONE');
+    })
+    .catch(err => {
+      next(err);
+    });
+});
+
+module.exports = router;
